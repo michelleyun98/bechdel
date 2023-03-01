@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/bechdel_corpus/__init__.py
+src/bechdel_corpus/example.py
+src/bechdel_corpus.egg-info/PKG-INFO
+src/bechdel_corpus.egg-info/SOURCES.txt
+src/bechdel_corpus.egg-info/dependency_links.txt
+src/bechdel_corpus.egg-info/requires.txt
+src/bechdel_corpus.egg-info/top_level.txt
