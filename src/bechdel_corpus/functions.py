@@ -48,7 +48,7 @@ def get_text_by_id(book_id, filename):
             count +=1
 
 def add_texts_from_file(filename):
-    files = Path(dirname)
+    files = Path(DIRNAME)
     files.mkdir(parents = True, exist_ok = True)
     
     with open(filename) as f:
@@ -56,7 +56,7 @@ def add_texts_from_file(filename):
     
     links_list = list()
     for title in titles:
-        filename = dirname + '/' + title.replace(" ", "_") + ".txt"
+        filename = DIRNAME + '/' + title.replace(" ", "_") + ".txt"
 
         if os.path.isfile(filename) and os.stat(filename).st_size != 0:
             print(f"{title} file already exists")
