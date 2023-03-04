@@ -19,7 +19,6 @@ import chapterize
 import re
 
 
-HOME_DIR = "/Users/jata/Documents/bechdel/bechdel/src/bechdel_corpus"
 FORMATTED_DIR = "data_formatted"
 already_loaded_file = "books_processed.txt"
 
