@@ -15,12 +15,13 @@ import json
 import os
 import urllib.request as request
 from urllib.error import HTTPError
-import chapterize
 import re
+import csv
 
 
 FORMATTED_DIR = "data_formatted"
 already_loaded_file = "books_processed.txt"
+corpus_csv_fn = "corpus.csv"
 
 class BechdelCorpus:
     def __init__(self, books_filename, home_dir, formatted_dir = FORMATTED_DIR):
@@ -39,6 +40,12 @@ class BechdelCorpus:
         self.process_books_from_list(already_loaded_file)
         
         print("BUILD COMPLETE")
+        
+        print("WRITING TO FILE")
+        self.write_corpus()
+        
+        print("To access corpus contents, use BechdelCorpusObject.read_corpus()")
+        
 
     def get_books_from_file(self, books_filename):
         with open(books_filename) as f:
@@ -126,7 +133,7 @@ class BechdelCorpus:
                 passes_bechdel = True
                 print(chapter_id)
             with open(FORMATTED_DIR + "/" + chapter_id + ".txt", "w+") as f:
-                f.write(f"<bechdel>{passes_bechdel}</bechdel>/n<id>{chapter_id}</id>\n<title>{title}</title>\n<author>{author}</author>\n<text>{chapter_text}</text><male_mentions>{male_mentions}</male_mentions>\n<male_speakers>{male_speakers}</male_speakers>\n<female_speakers>{female_speakers}</female_speakers>\n\n")
+                f.write(f"<bechdel>{passes_bechdel}</bechdel>\n<id>{chapter_id}</id>\n<title>{title}</title>\n<author>{author}</author>\n<text>{chapter_text}</text><male_mentions>{male_mentions}</male_mentions>\n<male_speakers>{male_speakers}</male_speakers>\n<female_speakers>{female_speakers}</female_speakers>\n\n")
         
     def get_dialogues(self, chapter, open_quote = '“', close_quote = '”'):
         '''function that processes the text file of a given chapter to return a list of all the dialogues in it'''
@@ -209,5 +216,59 @@ class BechdelCorpus:
         #Get the count and return it
         count = len(gendered_nps)
         return count
+      
+    def get_rows_cols(self, regs, text, column_names):
     
+        def rehelp(pattern, text, column_names):
+
+            cols, rows = [], []
+            for match in pattern.finditer(text):
+
+                if match.group(1) in column_names:
+
+                    cols.append(match.group(1))
+                    rows.append(match.group(2))
+
+            return cols, rows
+
+        cols, rows = [], []
+        for pattern in regs:
+            col, row = rehelp(pattern, text, column_names)
+            cols.extend(col)
+            rows.extend(row)
+
+        return zip(cols, rows)
+      
+    def write_corpus(self):    
+    
+
+        def_pattern = re.compile(r"<(.*)>(.*)<\/.*>")
+        male_pattern = re.compile(r"<\/text><(.*)>([0-9])")
+        text_pattern = re.compile(r"<(text)>\n*((\n.*)+)\n+<\/text>")
+
+        regs = [text_pattern, def_pattern, male_pattern]
+
+        column_names = ["title", "male_mentions", "author", "text",
+                        "male_speakers", "female_speakers", "bechdel","id"]
+        text_list = os.listdir(self.formatted_dir)
+
+        with open(corpus_csv_fn, 'w', encoding='utf-8-sig') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames=column_names)
+            writer.writeheader()
+        #Text_list is like the list of all the text files
+            for text in text_list:
+                if text.endswith('.txt'):
+                    with open(self.formatted_dir + "/" + text) as d:
+                        text = d.read()
+                        row = {col:row for col, row in self.get_rows_cols(regs, text,column_names)}
+                        writer.writerow(row)
+                        d.close()
+            outfile.close()
+            
+    def read_corpus(self):
+          
+        with open(corpus_csv_fn, 'r') as fin:
+          for line in fin:
+            yield line
+
 
