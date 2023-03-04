@@ -23,7 +23,7 @@ FORMATTED_DIR = "data_formatted"
 already_loaded_file = "books_processed.txt"
 
 class BechdelCorpus:
-    def __init__(self, books_filename, formatted_dir = FORMATTED_DIR):
+    def __init__(self, books_filename, home_dir, formatted_dir = FORMATTED_DIR):
         
         print("BEGIN BUILD\n")
         
