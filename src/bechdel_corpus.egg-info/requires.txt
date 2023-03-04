@@ -1,9 +1,0 @@
-chapterize
-nltk
-time
-bs4
-urllib
-time
-json
-os
-pathlib
