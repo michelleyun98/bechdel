@@ -27,8 +27,8 @@ BechdelCorpus = BechdelCorpusBuilder("books.txt", HOME_DIR)
 
 ## Roadmap
 
-- [ ] Build corpus
-- [ ] Get corpus statistics
+- [*] Build corpus
+- [*] Get corpus statistics
 - [ ] Release on PyPi
     - [ ] Update version
 - [ ] Ensure Windows compatibility
