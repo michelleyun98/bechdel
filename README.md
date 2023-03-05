@@ -18,7 +18,7 @@ python >= 3.10
 ```
 git clone https://github.com/michelleyun98/bechdel.git
 ```
-2. Open BuilderDriver.ipynb and run the following (replace`HOME_DIR` with your root directory):
+2. Open `BuilderDriver.ipynb` and run the following (replace`HOME_DIR` with your root directory):
 ```
 from BechdelCorpusBuilder import *
 HOME_DIR = "path-to-current-working-dir"
