@@ -30,7 +30,7 @@ class BechdelCorpus:
         
         # INITIALIZE CLASS VARIABLES
         self.formatted_dir = formatted_dir
-        self.current_id = 1000
+        self.current_id = 1000    
         
         
         # CONVERT INPUT FILE TO LIST OF TITLE, AUTHOR TUPLES
@@ -252,7 +252,7 @@ class BechdelCorpus:
                         "male_speakers", "female_speakers", "bechdel","id"]
         text_list = os.listdir(self.formatted_dir)
 
-        with open(corpus_csv_fn, 'w', encoding='utf-8-sig') as outfile:
+        with open(corpus_csv_fn, 'w', encoding='utf-8') as outfile:
             writer = csv.DictWriter(outfile, fieldnames=column_names)
             writer.writeheader()
         #Text_list is like the list of all the text files
@@ -265,10 +265,12 @@ class BechdelCorpus:
                         d.close()
             outfile.close()
             
-    def read_corpus(self):
+    def read_corpus(self, fields):
           
-        with open(corpus_csv_fn, 'r') as fin:
-          for line in fin:
-            yield line
+        with open(corpus_csv_fn, newline = '') as corp:
+            reader = csv.DictReader(corp)
+            
+            for row in corp:
+              yield line
 
 
