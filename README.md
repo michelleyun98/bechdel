@@ -6,9 +6,6 @@ An annotated corpus of classic literature.
 
 [The Bechdel test](https://en.wikipedia.org/wiki/Bechdel_test) was created by cartoonist Allison Bechdel as a measure of female representation in fiction. While typically applied to film, this corpus aims to extend the metric to the medium of long-form text.
 
-### Corpus explanation
-* Format: csv
-* 
 ### Dependencies
 
 ```
@@ -38,9 +35,8 @@ BechdelCorpus = BechdelCorpusBuilder("books.txt", HOME_DIR)
 
 ## Help
 * The current source code *has not been tested for Windows compatability*. 
-## Contributors
 
-Contributors names and contact info
+## Contributors
 
 Jata MacCabe, Ananya Apparaju, Sara Mirjalili, Kai Maurin-Jones, Michelle Yun
 
