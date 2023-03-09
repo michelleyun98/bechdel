@@ -1,2 +1,2 @@
 __pycache__/
-.*\/data_formatted\/
+src/bechdel_corpus/data_formatted/
