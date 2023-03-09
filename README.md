@@ -34,7 +34,8 @@ BechdelCorpus = BechdelCorpusBuilder("books.txt", HOME_DIR)
 - [ ] Add app
 
 ## Help
-* The current source code *has not been tested for Windows compatability*. If you are unable to load any aspect of the corpus through the source code, the csv file can be found [here](https://drive.google.com/file/d/1ROzDxVOKK_J9WVFT7w2VgGGY4s9Jp9Vy/view?usp=share_link)
+* The current source code *has not been tested for Windows compatability*. If you are unable to load any aspect of the corpus through the source code, a formatted csv file can be found [here](https://drive.google.com/file/d/1ROzDxVOKK_J9WVFT7w2VgGGY4s9Jp9Vy/view?usp=share_link) 
+or a raw version [here](https://raw.githubusercontent.com/michelleyun98/bechdel/main/meta/corpus.csv)
 
 ## Contributors
 
