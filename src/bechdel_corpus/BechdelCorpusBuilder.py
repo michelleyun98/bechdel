@@ -125,13 +125,21 @@ class BechdelCorpus:
             chapter_id = book_id + "_" + chapter_number
             dialogue_list = self.get_dialogues(chapter_text)
             inner_text, outer_text = self.get_inner_outer_text(dialogue_list)
-            male_mentions = self.get_dialogue_counts(inner_text, "male")
-            male_speakers = self.get_dialogue_counts(outer_text, "male")
-            female_speakers = self.get_dialogue_counts(outer_text, "female")
+            # self.get_proper_nouns(dialogue_list)
+
+            inner_characters = self.get_characters_in_text(title.lower().replace(" ", "-"), inner_text)
+            outer_characters = self.get_characters_in_text(title.lower().replace(" ", "-"), outer_text)
+            
+            male_mentions = {x for x in inner_characters if x[1] == "Male"}
+            male_speakers = {x for x in outer_characters if x[1] == "Male"}
+            female_mentions = {x for x in inner_characters if x[1] == "Female"}
+            female_speakers = {x for x in outer_characters if x[1] == "Female"}
+            
             passes_bechdel = False
-            if male_mentions == 0 and male_speakers==0 and female_speakers>=2:
+            if len(male_mentions) == 0 and len(male_speakers)==0 and len(female_speakers)>=2:
                 passes_bechdel = True
-                print(chapter_id)
+                print("\n", chapter_id)
+                print(inner_characters, outer_characters)
             with open(FORMATTED_DIR + "/" + chapter_id + ".txt", "w+") as f:
                 f.write(f"<bechdel>{passes_bechdel}</bechdel>\n<id>{chapter_id}</id>\n<title>{title}</title>\n<author>{author}</author>\n<text>{chapter_text}</text><male_mentions>{male_mentions}</male_mentions>\n<male_speakers>{male_speakers}</male_speakers>\n<female_speakers>{female_speakers}</female_speakers>\n\n")
         
@@ -164,58 +172,101 @@ class BechdelCorpus:
 
     
     def get_proper_nouns(self, text):
-        '''function that returns all the proper noun and pronoun labels in a dialogue list'''
+        '''function that returns all the proper noun and pronoun labels in list of texts'''
         #List to keep a track of the current dialogue chain
         current_chain = list()
         #Initializing list of all proper noun labels
         all_nps = list()
+        all_pronouns = list()
 
         for dialogue in text:
             #Tokenizing and part of speech tagging the dialogue
-            tagged_dialogue = pos_tag(word_tokenize(dialogue))
+            tagged_dialogue = pos_tag(word_tokenize(dialogue.replace("-", ".")))
             for word, pos in tagged_dialogue:
-                #If the word has a proper noun tag, append it to the current chain
+                # If the word has a proper noun tag, append it to the current chain
                 if pos == "NNP":
                     current_chain.append(word)
                 else:
-                    #For any other tag, check if the current chain is not empty
+                    # For any other tag, check if the current chain is not empty
                     if current_chain:
+                        for i in range(len(current_chain)):
+                            if "\u2060" in current_chain[i]:
+                                current_chain[i] = current_chain[i].replace("\u2060", " ")
                         #Add the list of proper nouns to the final list
                         all_nps.append(current_chain)
                         #Reinitialize current chain
                         current_chain = list()
-        return all_nps
-    
-    def get_gendered_labels(self, all_nps, gender):
-        '''function that returns all the gendered labels from a list of proper noun and pronoun labels'''
-        #If entered gender is female, use female names, titles
-        if gender == "female":
-            gn_names = [name for name in names.words('female.txt')]
-            titles = ['Mrs.', 'Ms.', 'Miss', 'Lady']
+                    if pos == "PRP":
+                        all_pronouns.append((word, all_nps))
+                        
+        with open(f"/Users/jata/Documents/Bookdel/bechdel/src/bechdel_corpus/characterList.txt", 'a') as f:
+            for np in all_nps:
 
-        #If entered gender is male, use male names, titles 
-        if gender == "male":
-            gn_names = [name for name in names.words('male.txt')]
-            titles = ['Mr.', 'Sir']
-
-        #List of all gendered labels
-        gender_nps = list() 
-        for noun in all_nps:
-            if any(title in noun for title in titles):
-                gender_nps.append(noun)
-            elif any(name in gn_names for name in noun):
-                gender_nps.append(noun)
-        return gender_nps
+                f.write(' '.join(np) + "\n")
+        return all_nps, all_pronouns
+        
+    def handle_unknown(self, text, unknown_np):
+        current_chain = list()
+        female_titles = {'Miss', 'Lady', 'lady', 'sister', 'aunt'}
+        male_specifications = {'uncle'}
+        gender = "Male"
+        for dialogue in text:
+            tagged_dialogue = pos_tag(word_tokenize(dialogue.replace("-", ".")))
+            for i, (word, pos) in enumerate(tagged_dialogue):            
+                if pos == "NNP":
+                    current_chain.append(word)
+                else:
+                    if current_chain:
+                        if current_chain == unknown_np:
+                            # print("YA", unknown_np, tagged_dialogue[i-5:i])
+                            if len(male_specifications & set(x[0] for x in tagged_dialogue[i-5:i]))==0:
+                                
+                                if len(female_titles & set(x[0] for x in tagged_dialogue[i-3:i]))>0:
+                                    gender = "Female"
+                            # print(gender)
+                        current_chain = list()
+                        
+        return gender
     
-    def get_dialogue_counts(self, text, gender):
-        '''function that returns the count of gendered label in the text'''
-        #Get all nouns and pronouns in given text
-        all_nps = self.get_proper_nouns(text)
-        #Get all gendered nouns and pronouns in given text
-        gendered_nps = self.get_gendered_labels(all_nps, gender)
-        #Get the count and return it
-        count = len(gendered_nps)
-        return count
+    def handle_pronouns(self, gender, all_nps, characters_dict):
+        
+        ret_val = None
+        if gender == "Male":
+            ret_val = ("Ambiguous Male", "Male")
+        elif gender == "Female":
+            ret_val = ("Ambiguous Female", "Female")
+        for current_np in all_nps[::-1]:
+            
+            if ' '.join(current_np) in characters_dict:
+                if characters_dict[' '.join(current_np)][1] == gender:
+                    ret_val = tuple(characters_dict[' '.join(current_np)])
+                    break
+        # print(ret_val)
+        return ret_val
+    
+    def get_characters_in_text(self, title, text):
+        characters_dict = dict()
+        female_pronouns = ['she', 'She']
+        male_pronouns = ['he', 'He']
+        with open(f"characters/{title}-characters.txt") as f:
+            characters_dict = json.load(f)
+        all_nps, all_pronouns = self.get_proper_nouns(text)
+        ret_set = set()
+        for np in all_nps:           
+            if ' '.join(np) in characters_dict:
+                if characters_dict[' '.join(np)][1] == "Unknown":
+                    characters_dict[' '.join(np)][1] = self.handle_unknown(text, np)
+
+                ret_set.add(tuple(characters_dict[' '.join(np)]))
+        for pp in all_pronouns:
+            if pp[0] in female_pronouns:
+                # print(pp[0])
+                ret_set.add(self.handle_pronouns("Female", pp[1], characters_dict))
+            elif pp[0] in male_pronouns:
+                # print(pp[0])
+                ret_set.add(self.handle_pronouns("Male", pp[1], characters_dict))
+        return ret_set
+        
       
     def get_rows_cols(self, regs, text, column_names):
     
